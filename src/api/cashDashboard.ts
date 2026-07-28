@@ -81,3 +81,14 @@ export const getDailyCash = async (
     };
 
 };
+
+export const addManualCash = async (data: any) => {
+
+    const res = await api.post(
+        "/cash-dashboard/manual",
+        data
+    );
+
+    return res.data;
+
+};
