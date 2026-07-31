@@ -4,20 +4,20 @@ import { api } from "../api/axios";
 import { useToast } from "../store/toastStore";
 import { getCustomerInvoices } from "../api/customerApi";
 
-interface Customer {
-    Id: string;
-    Name: string;
-    Phone: string;
-}
+// interface Customer {
+//     Id: string;
+//     Name: string;
+//     Phone: string;
+// }
 
-interface Invoice {
-    Id: string;
-    InvoiceNumber: string;
-    TotalAmount: number;
-    PaidAmount: number;
-    BalanceAmount: number;
-    CreatedAt: string;
-}
+// interface Invoice {
+//     Id: string;
+//     InvoiceNumber: string;
+//     TotalAmount: number;
+//     PaidAmount: number;
+//     BalanceAmount: number;
+//     CreatedAt: string;
+// }
 
 export default function CustomerCreditDetails() {
     const { id } = useParams();
