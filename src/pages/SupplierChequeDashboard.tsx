@@ -164,48 +164,48 @@ export default function SupplierChequeDashboard() {
 
 
 
-    const getDays = (
-        date: string | null
-    ) => {
+    // const getDays = (
+    //     date: string | null
+    // ) => {
 
 
-        if (!date)
-            return null;
-
-
-
-        const today = new Date();
-
-        today.setHours(
-            0, 0, 0, 0
-        );
+    //     if (!date)
+    //         return null;
 
 
 
-        const chequeDate =
-            new Date(date);
+    //     const today = new Date();
 
-
-        chequeDate.setHours(
-            0, 0, 0, 0
-        );
-
-
-
-        const diff =
-            chequeDate.getTime()
-            -
-            today.getTime();
+    //     today.setHours(
+    //         0, 0, 0, 0
+    //     );
 
 
 
-        return Math.ceil(
-            diff /
-            (1000 * 60 * 60 * 24)
-        );
+    //     const chequeDate =
+    //         new Date(date);
 
 
-    };
+    //     chequeDate.setHours(
+    //         0, 0, 0, 0
+    //     );
+
+
+
+    //     const diff =
+    //         chequeDate.getTime()
+    //         -
+    //         today.getTime();
+
+
+
+    //     return Math.ceil(
+    //         diff /
+    //         (1000 * 60 * 60 * 24)
+    //     );
+
+
+    // };
 
 
 
@@ -406,8 +406,8 @@ export default function SupplierChequeDashboard() {
 
 
 
-                                const days =
-                                    getDays(c.chequeDate);
+                                // const days =
+                                //     getDays(c.chequeDate);
 
 
 

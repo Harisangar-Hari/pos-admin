@@ -6,7 +6,7 @@ interface Expense {
     title: string;
     amount: number;
     category: string;
-    notes?: string;
+    notes?:  string | null | undefined;
     expenseDate: string;
 }
 

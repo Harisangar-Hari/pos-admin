@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { api } from "../api/axios";
 import { getSupplierLedger } from "../api/supplierApi";
 interface Invoice {
     id: string;

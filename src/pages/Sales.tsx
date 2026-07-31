@@ -40,8 +40,8 @@ export default function Sales() {
   const isReturned = (status: any) =>
     status === 1 || status === "Returned";
 
-  const statusLabel = (status: any) =>
-    isReturned(status) ? "Returned" : "Completed";
+  // const statusLabel = (status: any) =>
+  //   isReturned(status) ? "Returned" : "Completed";
 
   const getPaymentStatus = (s: any) => {
     if (isReturned(s.status)) return "Returned";
