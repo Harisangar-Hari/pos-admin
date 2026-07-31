@@ -62,6 +62,10 @@ export default function CreditCustomers() {
 
     const totalCustomers = customers.length;
 
+    const customersWithOutstanding = customers.filter(
+        (c) => c.totalBalance > 0
+    ).length;
+
     const totalOutstanding = customers.reduce(
         (sum, c) => sum + (c.totalBalance || 0),
         0
@@ -83,7 +87,7 @@ export default function CreditCustomers() {
             await load();
         } catch (error: any) {
             alert(
-                error?.response?.data.message ||
+                error?.response?.data ||
                 error?.message ||
                 "Failed to create customer"
             );
@@ -152,10 +156,10 @@ export default function CreditCustomers() {
             <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-4">
                     <p className="text-[11px] font-semibold tracking-widest text-black/40 uppercase">
-                        Total customers
+                        {view === "credit" ? "Customers with outstanding" : "Total customers"}
                     </p>
                     <p className="text-3xl font-bold mt-1 font-mono tabular-nums">
-                        {totalCustomers}
+                        {view === "credit" ? customersWithOutstanding : totalCustomers}
                     </p>
                 </div>
 

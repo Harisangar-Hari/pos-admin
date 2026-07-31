@@ -31,6 +31,8 @@ export default function Purchases() {
 
     const [selectedSupplierId, setSelectedSupplierId] = useState("");
 
+    const [productSearch, setProductSearch] = useState("");
+
     const { showToast } = useToast();
 
 
@@ -103,6 +105,10 @@ export default function Purchases() {
         setCart(cart.filter(c => c.productId !== id));
     };
 
+    const filteredProducts = products.filter((p) =>
+        p.name.toLowerCase().includes(productSearch.toLowerCase())
+    );
+
     const total = cart.reduce(
         (sum, i) => sum + i.costPrice * i.quantity,
         0
@@ -172,13 +178,26 @@ export default function Purchases() {
                         Products
                     </h2>
 
-                    {products.length === 0 ? (
+                    <div className="flex items-center gap-2 rounded-xl border border-black/10 bg-[#FAFAF8] mb-3 focus-within:ring-2 focus-within:ring-[#0B6E4F]/30 focus-within:border-[#0B6E4F] transition">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" className="ml-3 shrink-0 text-black/35">
+                            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+                            <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                        </svg>
+                        <input
+                            value={productSearch}
+                            onChange={(e) => setProductSearch(e.target.value)}
+                            placeholder="Search products..."
+                            className="w-full py-2.5 pr-3 bg-transparent text-[14px] cursor-text outline-none placeholder:text-black/30"
+                        />
+                    </div>
+
+                    {filteredProducts.length === 0 ? (
                         <div className="py-12 text-center text-black/30 text-sm">
-                            No products found
+                            {products.length === 0 ? "No products found" : "No products match your search"}
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                            {products.map(p => (
+                            {filteredProducts.map(p => (
                                 <div
                                     key={p.id}
                                     onClick={() => addToCart(p)}
