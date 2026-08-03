@@ -35,10 +35,10 @@ function buildBarcodeHTML(data: BarcodeLabelData): string {
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* 38mm × 25mm sticker dimensions */
+  /* 38mm × 25mm sticker dimensions - LANDSCAPE orientation */
   @page { 
-    size: 38mm 25mm; 
-    margin: 1mm;
+    size: 38mm 25mm landscape;
+    margin: 0;
   }
 
   html, body {
@@ -107,6 +107,19 @@ function buildBarcodeHTML(data: BarcodeLabelData): string {
     font-weight: bold;
     margin: 0;
     flex-shrink: 0;
+  }
+
+  /* Force landscape for print */
+  @media print {
+    @page {
+      size: 38mm 25mm landscape;
+      margin: 0;
+    }
+    
+    html, body {
+      width: 38mm;
+      height: 25mm;
+    }
   }
 </style>
 </head>
