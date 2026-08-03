@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSaleById, returnSale } from "../api/salesApi";
+import { printReceipt, type ReceiptData } from "../utils/printReceipt";
 
 export default function SaleDetail() {
     const { id } = useParams();
@@ -54,6 +55,29 @@ export default function SaleDetail() {
         } finally {
             setReturning(false);
         }
+    };
+
+    const handlePrint = () => {
+        if (!sale) return;
+
+        // Map your sale data to the ReceiptData format
+        const receiptData: ReceiptData = {
+            invoiceNumber: sale.invoiceNumber,
+            items: (sale.items ?? []).map((item: any) => ({
+                name: item.productName || item.name || "Product",
+                quantity: item.quantity,
+                price: item.unitPrice
+            })),
+            customerName: sale.customer?.name,
+            customerPhone: sale.customer?.phone,
+            total: sale.totalAmount,
+            paid: sale.paidAmount || 0,
+            balance: sale.balanceAmount || 0,
+            change: sale.change || 0,
+            paymentMode: sale.paymentMode || "credit"
+        };
+
+        printReceipt(receiptData);
     };
 
     if (loading) {
@@ -118,6 +142,13 @@ export default function SaleDetail() {
                                 {returning ? "Processing…" : "Return invoice"}
                             </button>
                         )}
+
+                        <button
+                            onClick={handlePrint}
+                            className="text-[13px] font-medium px-3.5 py-2 rounded-xl bg-[#4338CA] text-white hover:bg-[#3730A3] cursor-pointer transition shadow-sm"
+                        >
+                            🖨️ Print
+                        </button>
 
                         <button
                             onClick={() => navigate(-1)}
