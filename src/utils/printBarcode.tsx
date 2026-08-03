@@ -15,7 +15,7 @@ function buildBarcodeHTML(data: BarcodeLabelData): string {
   // Generate barcode image URL
   const barcodeImageUrl = `https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(
     data.barcode
-  )}&code=Code128&dpi=300&height=120`;
+  )}&code=Code128&dpi=96&height=30`;
 
   const labels = Array.from({ length: copies }).map(() => `
     <div class="label">
