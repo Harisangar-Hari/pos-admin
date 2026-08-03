@@ -12,13 +12,11 @@ export interface BarcodeLabelData {
 function buildBarcodeHTML(data: BarcodeLabelData): string {
   const copies = data.copies && data.copies > 0 ? data.copies : 1;
 
-  // Generate barcode image URL using a free online barcode API
-  // Smaller height (30) since the sticker itself is short
+  // Generate barcode image URL
   const barcodeImageUrl = `https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(
     data.barcode
-  )}&code=Code128&dpi=96&height=30`;
+  )}&code=Code128&dpi=300&height=120`;
 
-  // Build each label with proper structure
   const labels = Array.from({ length: copies }).map(() => `
     <div class="label">
       <p class="shop">Karrali</p>
@@ -35,34 +33,43 @@ function buildBarcodeHTML(data: BarcodeLabelData): string {
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  /* 38mm × 25mm sticker dimensions - LANDSCAPE orientation */
+  /* CRITICAL FIX 1: REMOVE 'landscape'. Set exact dimensions. */
   @page { 
-    size: 38mm 25mm landscape;
+    size: 38mm 25mm; 
     margin: 0;
   }
 
+  /* CRITICAL FIX 2: Do not limit width/height on html/body. 
+     Let the browser use the full paper size defined in @page */
   html, body {
-    width: 38mm;
-    height: 25mm;
+    width: 100%;
+    height: 100%;
     font-family: 'Courier New', Courier, monospace;
     color: #000 !important;
     background: #fff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    margin: 0;
+    padding: 0;
   }
 
   .label {
+    /* CRITICAL FIX 3: Force exact size on the container */
     width: 38mm;
     height: 25mm;
+    
     padding: 1.5mm 1mm;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center; /* Changed to center to fix spacing */
     text-align: center;
     page-break-after: always;
     page-break-inside: avoid;
     box-sizing: border-box;
+    /* Ensure it takes up the exact slot */
+    margin: 0;
+    overflow: hidden; 
   }
 
   .label:last-child { 
@@ -72,19 +79,17 @@ function buildBarcodeHTML(data: BarcodeLabelData): string {
   .shop {
     font-size: 8px;
     font-weight: bold;
-    line-height: 1;
-    margin: 0;
-    flex-shrink: 0;
+    line-height: 1.2;
+    margin-bottom: 1px;
   }
 
   .barcode {
-    max-width: 34mm;
+    /* CRITICAL FIX 4: Use specific height to ensure it fits */
     width: auto;
-    height: auto;
-    max-height: 12mm;
+    height: 11mm; 
+    max-width: 34mm;
     display: block;
     margin: 1px 0;
-    flex-shrink: 0;
   }
 
   .name {
@@ -93,32 +98,36 @@ function buildBarcodeHTML(data: BarcodeLabelData): string {
     line-height: 1.1;
     max-width: 36mm;
     word-break: break-word;
-    margin: 0;
+    margin: 1px 0;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1; /* Changed to 1 line to prevent overlapping */
     -webkit-box-orient: vertical;
-    flex-shrink: 0;
   }
 
   .price {
     font-size: 9px;
     font-weight: bold;
-    margin: 0;
-    flex-shrink: 0;
+    margin-top: 1px;
   }
 
-  /* Force landscape for print */
+  /* MEDIA PRINT FIXES */
   @media print {
     @page {
-      size: 38mm 25mm landscape;
+      size: 38mm 25mm;
       margin: 0;
     }
     
     html, body {
-      width: 38mm;
-      height: 25mm;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .label {
+      -webkit-print-color-adjust: exact;
     }
   }
 </style>
@@ -128,7 +137,6 @@ function buildBarcodeHTML(data: BarcodeLabelData): string {
 ${labels}
 
 <script>
-  // Wait for all images to load before printing
   function waitForImagesAndPrint() {
     const images = document.querySelectorAll('.barcode');
     let loadedCount = 0;
@@ -155,7 +163,6 @@ ${labels}
       }
     });
 
-    // Safety timeout: print anyway if images take too long (3 seconds)
     setTimeout(() => {
       if (loadedCount < totalImages) {
         console.warn('Some barcode images failed to load, printing anyway');
@@ -165,15 +172,11 @@ ${labels}
   }
 
   function doPrint() {
-    // Focus the window first
     window.focus();
-    
-    // Use multiple animation frames to ensure rendering is complete
     requestAnimationFrame(function() {
       requestAnimationFrame(function() {
         requestAnimationFrame(function() {
           window.print();
-          // Don't close immediately - let the user see the print dialog
           setTimeout(function() { 
             window.close(); 
           }, 3000);
@@ -182,7 +185,6 @@ ${labels}
     });
   }
 
-  // Start the printing process
   if (document.readyState === 'complete') {
     waitForImagesAndPrint();
   } else {
