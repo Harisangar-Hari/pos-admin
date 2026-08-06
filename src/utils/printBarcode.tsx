@@ -1,274 +1,316 @@
-// printBarcode.tsx
-// Prints individual barcode labels - one label per page/sticker
-// Sized for 38mm × 25mm (3.8×2.5cm) sticker labels
-
-export interface BarcodeLabelData {
-  productName: string;
+interface BarcodeLabelData {
   barcode: string;
-  price?: number;
-  copies?: number;
+  productName: string;
+  price?: string;
+  format?: 'CODE128' | 'CODE39' | 'EAN13' | 'UPC' | 'ITF';
+  companyName?: string;
+  width?: number;
+  height?: number;
 }
 
 function buildBarcodeHTML(data: BarcodeLabelData): string {
-  const copies = data.copies && data.copies > 0 ? data.copies : 1;
+  const companyName = data.companyName || 'Karrali';
 
-  // Generate barcode image URL
-  const barcodeImageUrl = `https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(
-    data.barcode
-  )}&code=Code128&dpi=96&height=30`;
-
-  // Create individual pages for each label
-  const labels = Array.from({ length: copies }).map(() => `
-    <div class="page">
-      <div class="label">
-        <p class="shop">Karrali</p>
-        <img class="barcode" src="${barcodeImageUrl}" alt="Barcode: ${data.barcode}" />
-        <p class="name">${data.productName}</p>
-        ${data.price !== undefined ? `<p class="price">Rs ${data.price.toFixed(2)}</p>` : ""}
-        <p class="barcode-text">${data.barcode}</p>
-      </div>
-    </div>
-  `).join("");
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Barcode Label - ${data.productName}</title>
-<style>
-  * { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-  }
-
-  /* ── Page settings: exactly 38mm × 25mm ── */
-  @page { 
-    size: 38mm 25mm;
-    margin: 0;
-  }
-
-  html, body {
-    font-family: 'Courier New', Courier, monospace;
-    color: #000 !important;
-    background: #fff !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* ── Each page contains one label ── */
-  .page {
-    width: 38mm;
-    height: 25mm;
-    page-break-after: always;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #ffffff;
-  }
-
-  .page:last-child {
-    page-break-after: auto;
-  }
-
-  /* ── Label content ── */
-  .label {
-    width: 38mm;
-    height: 25mm;
-    padding: 1.5mm 1mm;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-
-  .shop {
-    font-size: 8px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
-    margin-bottom: 1px;
-    color: #1a1a1a;
-  }
-
-  .barcode {
-    width: auto;
-    height: 11mm;
-    max-width: 34mm;
-    display: block;
-    margin: 1px 0;
-    image-rendering: pixelated;
-  }
-
-  .name {
-    font-size: 8px;
-    font-weight: bold;
-    line-height: 1.1;
-    max-width: 36mm;
-    word-break: break-word;
-    margin: 1px 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: #1a1a1a;
-  }
-
-  .price {
-    font-size: 8px;
-    font-weight: bold;
-    margin-top: 1px;
-    color: #0B6E4F;
-  }
-
-  .barcode-text {
-    font-size: 6px;
-    font-weight: normal;
-    margin-top: 0.5px;
-    color: #666;
-    letter-spacing: 0.3px;
-  }
-
-  /* ── Print-specific fixes ── */
-  @media print {
-    @page {
-      size: 38mm 25mm;
-      margin: 0;
-    }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .page {
-      page-break-after: always;
-      page-break-inside: avoid;
-    }
-
-    .page:last-child {
-      page-break-after: auto;
-    }
-
-    .label {
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-  }
-
-  /* ── Screen preview styling (optional) ── */
-  @media screen {
-    body {
-      background: #f0f0f0;
-      padding: 20px;
-    }
-
-    .page {
-      background: #ffffff;
-      margin: 10px auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border-radius: 2px;
-    }
-
-    .label {
-      border: 1px dashed #ccc;
-    }
-  }
-</style>
-</head>
-<body>
-
-${labels}
-
-<script>
-  // ── Wait for barcode images to load before printing ──
-  function waitForImagesAndPrint() {
-    const images = document.querySelectorAll('.barcode');
-    let loadedCount = 0;
-    const totalImages = images.length;
-
-    if (totalImages === 0) {
-      doPrint();
-      return;
-    }
-
-    function checkImageLoaded() {
-      loadedCount++;
-      if (loadedCount === totalImages) {
-        doPrint();
-      }
-    }
-
-    images.forEach(img => {
-      if (img.complete && img.naturalWidth > 0) {
-        checkImageLoaded();
-      } else {
-        img.onload = checkImageLoaded;
-        img.onerror = function() {
-          console.warn('Failed to load barcode image:', img.src);
-          checkImageLoaded();
-        };
-        // Force reload if cached
-        if (img.complete) {
-          img.src = img.src;
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Barcode Label - ${companyName}</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
         }
-      }
-    });
+        
+        body {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          background: #f0f0f0;
+          font-family: Arial, Helvetica, sans-serif;
+          margin: 0;
+          padding: 0;
+        }
+        
+        /* Page size: 38mm x 25mm */
+        @page {
+          size: 38mm 25mm;
+          margin: 0;
+        }
+        
+        .label-container {
+          width: 38mm;
+          height: 25mm;
+          padding: 1.5mm 2mm;
+          background: white;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 0.8mm;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          border: 0.5mm solid #e0e0e0;
+          border-radius: 0.5mm;
+          overflow: hidden;
+        }
+        
+        /* Company Name - Top */
+        .company-name {
+          font-size: 2.2mm;
+          font-weight: bold;
+          color: #1a1a1a;
+          letter-spacing: 0.5mm;
+          text-transform: uppercase;
+          width: 100%;
+          text-align: center;
+          border-bottom: 0.4mm solid #333;
+          padding-bottom: 0.5mm;
+          flex-shrink: 0;
+        }
+        
+        /* Barcode Section - Middle */
+        .barcode-section {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          padding: 0.5mm 0;
+          flex-shrink: 0;
+        }
+        
+        #barcode {
+          width: 100%;
+          height: auto;
+          max-height: 8mm;
+        }
+        
+        /* Barcode Text (numbers below barcode) */
+        .barcode-text {
+          font-size: 1.2mm;
+          font-family: 'Courier New', monospace;
+          color: #333;
+          text-align: center;
+          letter-spacing: 0.3mm;
+          margin-top: -0.3mm;
+          flex-shrink: 0;
+        }
+        
+        /* Price - Below Barcode */
+        .price {
+          font-size: 2.5mm;
+          font-weight: bold;
+          color: #c0392b;
+          background: #fdf2f2;
+          padding: 0.3mm 1.5mm;
+          border-radius: 0.5mm;
+          border: 0.3mm solid #f5c6cb;
+          text-align: center;
+          flex-shrink: 0;
+          min-width: 8mm;
+        }
+        
+        /* Product Name - Bottom */
+        .product-name {
+          font-size: 1.6mm;
+          font-weight: 600;
+          color: #2c3e50;
+          text-align: center;
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          padding: 0.3mm 0;
+          border-top: 0.3mm solid #eee;
+          margin-top: 0.3mm;
+          flex-shrink: 0;
+        }
+        
+        /* Print styles */
+        @media print {
+          html, body {
+            margin: 0;
+            padding: 0;
+            min-height: auto;
+            background: white;
+          }
+          
+          body {
+            display: block;
+            background: white;
+          }
+          
+          .label-container {
+            box-shadow: none;
+            border: 0.3mm solid #ccc;
+            border-radius: 0;
+            width: 38mm;
+            height: 25mm;
+            padding: 1.5mm 2mm;
+            margin: 0;
+            page-break-after: avoid;
+            page-break-inside: avoid;
+          }
+          
+          .no-print {
+            display: none !important;
+          }
+        }
+        
+        /* Screen styles */
+        .no-print {
+          position: fixed;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          text-align: center;
+          background: white;
+          padding: 12px 24px;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+          z-index: 999;
+        }
+        
+        .no-print button {
+          padding: 10px 24px;
+          font-size: 14px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-right: 10px;
+          font-weight: bold;
+        }
+        
+        .no-print .print-btn {
+          background: #2c3e50;
+          color: white;
+        }
+        
+        .no-print .close-btn {
+          background: #95a5a6;
+          color: white;
+        }
+        
+        .no-print .info-text {
+          margin-top: 6px;
+          font-size: 11px;
+          color: #7f8c8d;
+        }
+        
+        /* Handle very small screens */
+        @media screen and (max-width: 100px) {
+          .label-container {
+            transform: scale(0.8);
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="label-container">
+        <!-- Company Name at Top -->
+        <div class="company-name">${escapeHtml(companyName)}</div>
+        
+        <!-- Barcode in Middle -->
+        <div class="barcode-section">
+          <svg id="barcode"></svg>
+        </div>
+        
+        <!-- Barcode Number Below -->
+        <div class="barcode-text">${escapeHtml(data.barcode)}</div>
+        
+        <!-- Price Below Barcode -->
+        ${data.price ? `<div class="price">${escapeHtml(data.price)}</div>` : ''}
+        
+        <!-- Product Name at Bottom -->
+        <div class="product-name">${escapeHtml(data.productName)}</div>
+      </div>
+      
+      <!-- Print Controls -->
+      <div class="no-print">
+        <button class="print-btn" onclick="window.print()">🖨️ Print Label</button>
+        <button class="close-btn" onclick="window.close()">Close</button>
+        <p class="info-text">Label Size: 38mm × 25mm</p>
+      </div>
+      
+      <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+      <script>
+        (function() {
+          try {
+            const barcodeValue = "${escapeHtml(data.barcode)}";
+            const format = "${data.format || 'CODE128'}";
+            
+            // Calculate optimal barcode size for 38x25mm label
+            const barcodeLength = barcodeValue.length;
+            let barWidth = 0.2;
+            let barHeight = 6;
+            let fontSize = 0.9;
+            
+            if (barcodeLength > 12) {
+              barWidth = 0.15;
+              barHeight = 5.5;
+              fontSize = 0.7;
+            } else if (barcodeLength < 8) {
+              barWidth = 0.28;
+              barHeight = 7;
+              fontSize = 1.1;
+            }
+            
+            JsBarcode("#barcode", barcodeValue, {
+              format: format,
+              width: barWidth,
+              height: barHeight,
+              displayValue: false, // We show text separately
+              fontSize: fontSize,
+              font: "monospace",
+              textMargin: 0,
+              margin: 0,
+              background: "#ffffff",
+              lineColor: "#000000",
+              valid: function(valid) {
+                if (!valid) {
+                  console.warn('Invalid barcode format');
+                }
+              }
+            });
+            
+            // Auto-print after delay
+            setTimeout(() => {
+              window.print();
+            }, 800);
+          } catch (error) {
+            console.error('Barcode generation error:', error);
+            document.querySelector('.barcode-section').innerHTML = 
+              '<p style="color:red;font-size:1.5mm;text-align:center;">⚠️ Error</p>';
+          }
+        })();
+      </script>
+    </body>
+    </html>
+  `;
+}
 
-    // Fallback: print anyway after timeout
-    setTimeout(() => {
-      if (loadedCount < totalImages) {
-        console.warn('Some barcode images failed to load, printing anyway');
-        doPrint();
-      }
-    }, 3000);
-  }
-
-  function doPrint() {
-    // Ensure window is focused
-    window.focus();
-    
-    // Use requestAnimationFrame to ensure rendering is complete
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        requestAnimationFrame(function() {
-          window.print();
-          // Close window after printing (give time for print dialog)
-          setTimeout(function() { 
-            window.close(); 
-          }, 3000);
-        });
-      });
-    });
-  }
-
-  // ── Start the print process ──
-  if (document.readyState === 'complete') {
-    waitForImagesAndPrint();
-  } else {
-    window.addEventListener('load', waitForImagesAndPrint);
-  }
-</script>
-</body>
-</html>`;
+// Helper function to escape HTML
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 export async function printBarcode(data: BarcodeLabelData): Promise<void> {
   try {
-    // Validate input
     if (!data.barcode) {
       throw new Error('Barcode is required');
     }
     if (!data.productName) {
       throw new Error('Product name is required');
+    }
+
+    // Validate barcode format
+    const cleanedBarcode = data.barcode.replace(/\s/g, '');
+    if (!/^[0-9A-Za-z\-_]+$/.test(cleanedBarcode)) {
+      throw new Error('Barcode contains invalid characters');
     }
 
     const html = buildBarcodeHTML(data);
@@ -279,19 +321,38 @@ export async function printBarcode(data: BarcodeLabelData): Promise<void> {
 
     const url = URL.createObjectURL(blob);
 
-    // Open in new window
-    const win = window.open(url, "_blank", "width=400,height=500");
+    // Open in a new window with print-optimized settings
+    const win = window.open(
+      url,
+      "_blank",
+      "width=400,height=700,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes"
+    );
 
     if (win) {
       win.addEventListener("load", () => {
         URL.revokeObjectURL(url);
+        win.focus();
+
+        // Trigger print after full load
+        setTimeout(() => {
+          try {
+            win.print();
+          } catch (printError) {
+            console.error('Print error:', printError);
+          }
+        }, 1200);
       });
-      win.focus();
+
+      win.addEventListener("beforeunload", () => {
+        URL.revokeObjectURL(url);
+      });
+
     } else {
-      // Popup blocked - try fallback
+      // Fallback if popup is blocked
       const fallbackWin = window.open(url, "_blank");
       if (!fallbackWin) {
         alert('Please allow popups to print barcode labels');
+        downloadAsHTML(html, `barcode-${data.barcode}.html`);
       }
     }
   } catch (error) {
@@ -300,12 +361,15 @@ export async function printBarcode(data: BarcodeLabelData): Promise<void> {
   }
 }
 
-// ── Utility: Test print function ──
-export async function testPrintBarcode(): Promise<void> {
-  await printBarcode({
-    productName: "LED Light 10W",
-    barcode: "8901234567890",
-    price: 150,
-    copies: 2,
-  });
+// Fallback download function
+function downloadAsHTML(html: string, filename: string): void {
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
