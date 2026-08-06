@@ -6,6 +6,7 @@ interface BarcodeLabelData {
   companyName?: string;
   width?: number;
   height?: number;
+  copies?: number;
 }
 
 function buildBarcodeHTML(data: BarcodeLabelData): string {
