@@ -18,7 +18,7 @@ function buildBarcodeHTML(data: BarcodeLabelData): string {
   )}&code=Code128&dpi=96&height=30`;
 
   // Create individual pages for each label
-  const labels = Array.from({ length: copies }).map((_, index) => `
+  const labels = Array.from({ length: copies }).map(() => `
     <div class="page">
       <div class="label">
         <p class="shop">Karrali</p>
